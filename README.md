@@ -1,6 +1,6 @@
 # Spring Boot Statemachine
 
-![Java CI with Maven](https://github.com/gcalsolaro/spring-cloud-admin/workflows/Java%20CI%20with%20Maven/badge.svg)
+![Java CI with Maven](https://github.com/gcalsolaro/spring-boot-state-machine/workflows/Java%20CI%20with%20Maven/badge.svg)
 > **Sample application using Statemachine powered by Spring**
 
 
