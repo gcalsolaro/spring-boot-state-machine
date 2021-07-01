@@ -36,5 +36,5 @@ The technology stack used is provided by Spring, in particular:
 
 Method | URI | Description | Parameters |
 --- | --- | --- | --- |
-`GET` | */api/statemachine/start/ok* | SAGA Pattern end with Istanza CREATED
-`GET` | */api/statemachine/start/ko* | SAGA Pattern end with Istanza REJECTED
+`GET` | */api/statemachine/start/ok* | SAGA Pattern end with Instance CREATED
+`GET` | */api/statemachine/start/ko* | SAGA Pattern end with Instance REJECTED

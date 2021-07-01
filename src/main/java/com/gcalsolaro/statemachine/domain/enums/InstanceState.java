@@ -1,6 +1,6 @@
 package com.gcalsolaro.statemachine.domain.enums;
 
-public enum StatoIstanza {
+public enum InstanceState {
 
 	NEW, PENDING, CREATED, REJECTED
 

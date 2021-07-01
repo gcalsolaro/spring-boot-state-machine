@@ -22,15 +22,29 @@ public class ApiController {
 	@Autowired
 	private SagaOrchestrator sagaOrchestrator;
 
+	/**
+	 * Test for ok
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@GetMapping("/start/ok")
 	public ResponseEntity<String> ok(HttpServletRequest request, HttpServletResponse response) {
-		StateMachine<ApplicationStates, ApplicationEvents> sagaResult = sagaOrchestrator.createIstanzaSaga(true);
+		StateMachine<ApplicationStates, ApplicationEvents> sagaResult = sagaOrchestrator.createInstanceSaga(true);
 		return new ResponseEntity<String>(sagaResult.getState().getId().name(), HttpStatus.OK);
 	}
 	
+	/**
+	 * Test for ko
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@GetMapping("/start/ko")
 	public ResponseEntity<String> ko(HttpServletRequest request, HttpServletResponse response) {
-		StateMachine<ApplicationStates, ApplicationEvents> sagaResult = sagaOrchestrator.createIstanzaSaga(false);
+		StateMachine<ApplicationStates, ApplicationEvents> sagaResult = sagaOrchestrator.createInstanceSaga(false);
 		return new ResponseEntity<String>(sagaResult.getState().getId().name(), HttpStatus.OK);
 	}
 

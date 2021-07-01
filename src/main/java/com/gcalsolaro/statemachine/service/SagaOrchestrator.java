@@ -9,10 +9,10 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.transition.Transition;
 import org.springframework.stereotype.Service;
 
-import com.gcalsolaro.statemachine.domain.entity.Istanza;
-import com.gcalsolaro.statemachine.domain.entity.Utente;
-import com.gcalsolaro.statemachine.domain.enums.StatoIstanza;
-import com.gcalsolaro.statemachine.domain.enums.StatoUtente;
+import com.gcalsolaro.statemachine.domain.entity.Instance;
+import com.gcalsolaro.statemachine.domain.entity.User;
+import com.gcalsolaro.statemachine.domain.enums.InstanceState;
+import com.gcalsolaro.statemachine.domain.enums.UserState;
 import com.gcalsolaro.statemachine.domain.enums.statemachine.ApplicationEvents;
 import com.gcalsolaro.statemachine.domain.enums.statemachine.ApplicationStates;
 
@@ -22,21 +22,31 @@ public class SagaOrchestrator {
 	@Autowired
 	private StateMachine<ApplicationStates, ApplicationEvents> stateMachine;
 
-	public StateMachine<ApplicationStates, ApplicationEvents> createIstanzaSaga(boolean success) {
+	/**
+	 * Simple SAGA Orchestrator
+	 * 
+	 * @param success
+	 * @return
+	 */
+	public StateMachine<ApplicationStates, ApplicationEvents> createInstanceSaga(boolean success) {
 		this.setUpVariable(success);
 		try {
 			StateMachine<ApplicationStates, ApplicationEvents> sagaStateMachine = this.startSaga();
 
-			this.fireEvent(sagaStateMachine, ApplicationEvents.CREATE_ISTANZA);
-			this.fireEvent(sagaStateMachine, ApplicationEvents.CREATE_UTENTE);
+			this.fireEvent(sagaStateMachine, ApplicationEvents.CREATE_INSTANCE);
+			//
+			// More check...
+			// ...
+			// More Stuff
+			//
+			this.fireEvent(sagaStateMachine, ApplicationEvents.CREATE_USER);
 
-			ApplicationStates subcontextState = 
-					(ApplicationStates) sagaStateMachine.getExtendedState().getVariables().get("SUBCONTEXT_EVENT");
+			ApplicationStates subcontextState = (ApplicationStates) sagaStateMachine.getExtendedState().getVariables().get("SUBCONTEXT_EVENT");
 
-			if (subcontextState.equals(ApplicationStates.END_UTENTE_OK)) {
-				this.fireEvent(sagaStateMachine, ApplicationEvents.UPDATE_ISTANZA_CREATED);
-			} else if (subcontextState.equals(ApplicationStates.END_UTENTE_KO)) {
-				this.fireEvent(sagaStateMachine, ApplicationEvents.UPDATE_ISTANZA_REJECTED);
+			if (subcontextState.equals(ApplicationStates.END_USER_OK)) {
+				this.fireEvent(sagaStateMachine, ApplicationEvents.UPDATE_INSTANCE_CREATED);
+			} else if (subcontextState.equals(ApplicationStates.END_USER_KO)) {
+				this.fireEvent(sagaStateMachine, ApplicationEvents.UPDATE_INSTANCE_REJECTED);
 			}
 
 			return sagaStateMachine;
@@ -60,42 +70,62 @@ public class SagaOrchestrator {
 		return transitions;
 	}
 
+	/**
+	 * Stop statemachine
+	 */
 	private void stopSaga() {
 		stateMachine.stop();
 	}
 
-	private boolean fireEvent(StateMachine<ApplicationStates, ApplicationEvents> stateMachine, ApplicationEvents event) {
-		return stateMachine.sendEvent(event);
-	}
-
+	/**
+	 * Start statemachine
+	 * 
+	 * @return
+	 */
 	private StateMachine<ApplicationStates, ApplicationEvents> startSaga() {
 		stateMachine.start();
 		return stateMachine;
 	}
 
+	/**
+	 * Dispatch Event
+	 * 
+	 * @param stateMachine
+	 * @param event
+	 * @return
+	 */
+	private boolean fireEvent(StateMachine<ApplicationStates, ApplicationEvents> stateMachine, ApplicationEvents event) {
+		return stateMachine.sendEvent(event);
+	}
+
+	/**
+	 * Set variable for excecution
+	 * 
+	 * @param success
+	 */
 	private void setUpVariable(boolean success) {
-		stateMachine.getExtendedState().getVariables().put("success", success);
-		stateMachine.getExtendedState().getVariables().put("istanza", this.setUpIstanza());
-		stateMachine.getExtendedState().getVariables().put("utente", this.setUpUtente());
+		stateMachine.getExtendedState().getVariables().put("success", success); // only for test
+		stateMachine.getExtendedState().getVariables().put("instance", this.setUpInstance());
+		stateMachine.getExtendedState().getVariables().put("user", this.setUpUser());
 	}
 
-	private Istanza setUpIstanza() {
-		Istanza istanza = new Istanza();
-		istanza.setcIstanza("SAGA_ISTANZA_TEST");
-		istanza.setInfo("test saga");
-		istanza.setStato(StatoIstanza.NEW);
-		return istanza;
+	private Instance setUpInstance() {
+		Instance i = new Instance();
+		i.setcInstance("SAGA_INSTANCE_TEST");
+		i.setInfo("test saga");
+		i.setState(InstanceState.NEW);
+		return i;
 	}
 
-	private Utente setUpUtente() {
-		Utente utente = new Utente();
-		utente.setNome("Giuseppe");
-		utente.setCognome("Calsolaro");
-		utente.setEmail("giuseppe.calsolaro@gmail.com");
-		utente.setcFiscale("CLSGPP87M28E409V");
-		utente.setDtNascita(new Date());
-		utente.setStato(StatoUtente.NEW);
-		return utente;
+	private User setUpUser() {
+		User u = new User();
+		u.setName("Giuseppe");
+		u.setSurname("Calsolaro");
+		u.setEmail("giuseppe.calsolaro@gmail.com");
+		u.setFiscalCode("CLSGPP87M28E409V");
+		u.setDtBorn(new Date());
+		u.setState(UserState.NEW);
+		return u;
 	}
 
 }

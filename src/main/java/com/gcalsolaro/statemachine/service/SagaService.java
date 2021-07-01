@@ -7,87 +7,92 @@ import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.guard.Guard;
 import org.springframework.stereotype.Service;
 
-import com.gcalsolaro.statemachine.domain.entity.Istanza;
-import com.gcalsolaro.statemachine.domain.entity.Utente;
-import com.gcalsolaro.statemachine.domain.enums.StatoIstanza;
-import com.gcalsolaro.statemachine.domain.enums.StatoUtente;
+import com.gcalsolaro.statemachine.domain.entity.Instance;
+import com.gcalsolaro.statemachine.domain.entity.User;
+import com.gcalsolaro.statemachine.domain.enums.InstanceState;
+import com.gcalsolaro.statemachine.domain.enums.UserState;
 import com.gcalsolaro.statemachine.domain.enums.statemachine.ApplicationEvents;
 import com.gcalsolaro.statemachine.domain.enums.statemachine.ApplicationStates;
-import com.gcalsolaro.statemachine.repository.IstanzaRepository;
-import com.gcalsolaro.statemachine.repository.UtenteRepository;
+import com.gcalsolaro.statemachine.repository.InstanceRepository;
+import com.gcalsolaro.statemachine.repository.UserRepository;
 
 @Service
 public class SagaService {
 
 	@Autowired
-	private IstanzaRepository istanzaRepository;
+	private InstanceRepository instanceRepository;
 
 	@Autowired
-	private UtenteRepository utenteRepository;
+	private UserRepository userRepository;
 
-	public Action<ApplicationStates, ApplicationEvents> createIstanza() {
+	public Action<ApplicationStates, ApplicationEvents> createInstance() {
 		return new Action<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public void execute(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Istanza istanza = findIstanza(context.getExtendedState());
-				istanza.setStato(StatoIstanza.PENDING);
-				istanza = istanzaRepository.save(istanza);
-				context.getExtendedState().getVariables().put("istanza", istanza);
+				Instance instance = findInstance(context.getExtendedState());
+				instance.setState(InstanceState.PENDING);
+				instance = instanceRepository.save(instance);
+				context.getExtendedState().getVariables().put("instance", instance);
 			}
 		};
 	}
 
-	public Action<ApplicationStates, ApplicationEvents> createUtente() {
+	public Action<ApplicationStates, ApplicationEvents> createUser() {
 		return new Action<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public void execute(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Utente utente = findUtente(context.getExtendedState());
-				utente.setStato(StatoUtente.CREATED);
-				utente = utenteRepository.save(utente);
-				context.getExtendedState().getVariables().put("utente", utente);
+				User user = findUser(context.getExtendedState());
+				user.setState(UserState.CREATED);
+				user = userRepository.save(user);
+				// Save and update context variable
+				context.getExtendedState().getVariables().put("user", user);
 			}
 		};
 	}
 
-	public Action<ApplicationStates, ApplicationEvents> evaluateUtente() {
+	public Action<ApplicationStates, ApplicationEvents> evaluateUser() {
 		return new Action<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public void execute(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Utente utente = findUtente(context.getExtendedState());
-				if (utente != null) {
-					if (utente.getStato().equals(StatoUtente.CREATED)) {
+				User user = findUser(context.getExtendedState());
+				if (user != null) {
+					if (user.getState().equals(UserState.CREATED)) {
+						// the boolean is used for example purposes to manage the success or failure of the transaction
 						boolean success = findSuccessState(context.getExtendedState());
 						if (success)
-							context.getStateMachine().sendEvent(ApplicationEvents.UPDATE_UTENTE_CREATED);
+							context.getStateMachine().sendEvent(ApplicationEvents.UPDATE_USER_CREATED);
 						else
-							context.getStateMachine().sendEvent(ApplicationEvents.UPDATE_UTENTE_REJECTED);
+							context.getStateMachine().sendEvent(ApplicationEvents.UPDATE_USER_REJECTED);
 					}
 				}
 			}
 		};
 	}
 
-	public Action<ApplicationStates, ApplicationEvents> updateIstanza(boolean success) {
+	public Action<ApplicationStates, ApplicationEvents> updateInstance(boolean success) {
 		return new Action<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public void execute(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Istanza istanza = findIstanza(context.getExtendedState());
+				Instance instance = findInstance(context.getExtendedState());
 
-				istanza.setStato(StatoIstanza.REJECTED);
+				instance.setState(InstanceState.REJECTED);
 
 				if (success) {
-					Utente utente = findUtente(context.getExtendedState());
-					istanza.setUtente(utente);
-					istanza.setStato(StatoIstanza.CREATED);
+					User user = findUser(context.getExtendedState());
+					instance.setUser(user);
+					instance.setState(InstanceState.CREATED);
 				}
 
-				istanza = istanzaRepository.save(istanza);
-
+				instanceRepository.save(instance);
 			}
 		};
 	}
 
-	public Action<ApplicationStates, ApplicationEvents> saveUtenteState() {
+	/**
+	 * 
+	 * @return
+	 */
+	public Action<ApplicationStates, ApplicationEvents> saveUserState() {
 		return new Action<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public void execute(StateContext<ApplicationStates, ApplicationEvents> context) {
@@ -96,25 +101,25 @@ public class SagaService {
 		};
 	}
 
-	public Guard<ApplicationStates, ApplicationEvents> protectIstanzaState(StatoIstanza statoIstanza) {
+	public Guard<ApplicationStates, ApplicationEvents> protectInstanceState(InstanceState state) {
 		return new Guard<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public boolean evaluate(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Istanza istanza = findIstanza(context.getExtendedState());
-				if (istanza != null)
-					return istanza.getStato().equals(statoIstanza);
+				Instance instance = findInstance(context.getExtendedState());
+				if (instance != null)
+					return instance.getState().equals(state);
 				return false;
 			}
 		};
 	}
 
-	public Guard<ApplicationStates, ApplicationEvents> protectUtenteState(StatoUtente statoUtente) {
+	public Guard<ApplicationStates, ApplicationEvents> protectUserState(UserState state) {
 		return new Guard<ApplicationStates, ApplicationEvents>() {
 			@Override
 			public boolean evaluate(StateContext<ApplicationStates, ApplicationEvents> context) {
-				Utente utente = findUtente(context.getExtendedState());
-				if (utente != null)
-					return utente.getStato().equals(statoUtente);
+				User user = findUser(context.getExtendedState());
+				if (user != null)
+					return user.getState().equals(state);
 				return false;
 			}
 		};
@@ -122,19 +127,19 @@ public class SagaService {
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Internal Helper ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-	private Istanza findIstanza(ExtendedState extendedState) {
+	private Instance findInstance(ExtendedState extendedState) {
 		for (Object obj : extendedState.getVariables().values()) {
-			if (obj instanceof Istanza) {
-				return (Istanza) obj;
+			if (obj instanceof Instance) {
+				return (Instance) obj;
 			}
 		}
 		return null;
 	}
 
-	private Utente findUtente(ExtendedState extendedState) {
+	private User findUser(ExtendedState extendedState) {
 		for (Object obj : extendedState.getVariables().values()) {
-			if (obj instanceof Utente) {
-				return (Utente) obj;
+			if (obj instanceof User) {
+				return (User) obj;
 			}
 		}
 		return null;

@@ -1,39 +1,25 @@
-/*
-CREATE TABLE istanza (
-	id_istanza number NOT NULL,
-	c_istanza varchar(45) NOT NULL,
-	dt_domanda date NULL,
-	dt_ora_ins timestamp NOT NULL,
-	userid_ins varchar(64) NOT NULL,
-	dt_ora_mod timestamp NULL,
-	userid_mod varchar(64) NULL,
-	CONSTRAINT istanza_c_istanza_key UNIQUE (c_istanza),
-	CONSTRAINT istanza_pkey PRIMARY KEY (id_istanza)
-);
-*/
+/*DROP TABLE IF EXISTS user, instance;*/
 
-/*DROP TABLE IF EXISTS utente, istanza;*/
-
-CREATE TABLE utente (
-	id_utente number NOT NULL,
-	c_fiscale varchar(16) NOT NULL,
-	nome varchar(64) NULL,
-	cognome varchar(64) NULL,
-	dt_nascita date NULL,
-	stato varchar(20) NOT NULL,
+CREATE TABLE user (
+	id_user number NOT NULL,
+	c_fiscal_code varchar(16) NOT NULL,
+	name varchar(64) NULL,
+	surname varchar(64) NULL,
+	dt_born date NULL,
+	state varchar(20) NOT NULL,
 	email varchar(255) NULL,
-	CONSTRAINT utente_c_fiscale_key UNIQUE (c_fiscale),
-	CONSTRAINT utente_pkey PRIMARY KEY (id_utente)
+	CONSTRAINT user_c_fiscal_code_key UNIQUE (c_fiscal_code),
+	CONSTRAINT user_pkey PRIMARY KEY (id_user)
 );
 
-CREATE TABLE istanza (
-	id_istanza number NOT NULL,
-	c_istanza varchar(45) NOT NULL,
-	fk_utente int4,
+CREATE TABLE instance (
+	id_instance number NOT NULL,
+	c_instance varchar(45) NOT NULL,
+	fk_user int4,
 	info varchar(255) NULL,
-	stato varchar(20) NOT NULL,
-	CONSTRAINT istanza_c_istanza_key UNIQUE (c_istanza),
-	CONSTRAINT istanza_pkey PRIMARY KEY (id_istanza)
+	state varchar(20) NOT NULL,
+	CONSTRAINT instance_c_instance_key UNIQUE (c_instance),
+	CONSTRAINT instance_pkey PRIMARY KEY (id_instance)
 );
 
-ALTER TABLE istanza ADD CONSTRAINT fk_istanza_utente FOREIGN KEY (fk_utente) REFERENCES utente(id_utente);
+ALTER TABLE instance ADD CONSTRAINT fk_instance_user FOREIGN KEY (fk_user) REFERENCES user(id_user);

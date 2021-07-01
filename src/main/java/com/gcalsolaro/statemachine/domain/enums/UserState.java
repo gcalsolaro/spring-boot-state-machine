@@ -1,6 +1,6 @@
 package com.gcalsolaro.statemachine.domain.enums;
 
-public enum StatoUtente {
+public enum UserState {
 
 	NEW, CREATED, REJECTED
 
